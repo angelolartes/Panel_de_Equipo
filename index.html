@@ -125,9 +125,14 @@
                     <i data-lucide="shield-check" class="w-6 h-6 text-red-400"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-white">Panel de Supervisión</h1>
                         <span class="text-[11px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-950/60 text-red-300 border border-red-700/40">Ejecutivo</span>
+                        <!-- Indicador de Estado de Cloud Firestore -->
+                        <span id="cloudStatusBadge" class="text-[10px] font-medium px-2.5 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300 border border-white/10 flex items-center gap-1.5">
+                            <span id="cloudStatusDot" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span id="cloudStatusText">Conectando nube...</span>
+                        </span>
                     </div>
                     <p class="text-xs text-zinc-400">Control de operaciones por marca, equipo de ventas, señas y pagos</p>
                 </div>
@@ -198,10 +203,7 @@
 
         <!-- 5 Bloques Horizontales de Categorías / Marcas (Cada marca con su color) -->
         <div id="categoriesContainer" class="space-y-6">
-            <!-- Bloques generados dinámicamente:
-                 0km: 1. Volkswagen, 2. Peugeot, 3. Chevrolet
-                 4. Usados
-                 5. Convencionales -->
+            <!-- Bloques generados dinámicamente -->
         </div>
 
     </main>
@@ -421,7 +423,27 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK + Lógica de la App -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // ==========================================
+        // CONFIGURACIÓN DE FIREBASE (PANEL-SUPERVISOR)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVa1XkwlK-Rikvj37xrBRnU7XrfdEk0UM",
+            authDomain: "panel-supervisor.firebaseapp.com",
+            projectId: "panel-supervisor",
+            storageBucket: "panel-supervisor.firebasestorage.app",
+            messagingSenderId: "492482216769",
+            appId: "1:492482216769:web:e776008b54fa583d03d7c0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const CLOUD_DOC_REF = doc(db, "supervision", "estado_principal");
+
         // ==========================================
         // CONFIGURACIÓN DE LOS 5 BLOQUES / MARCAS
         // ==========================================
@@ -564,10 +586,27 @@
         let activeStatusFilter = 'ALL';
         let searchQuery = '';
 
+        function updateCloudBadge(state) {
+            const dot = document.getElementById('cloudStatusDot');
+            const text = document.getElementById('cloudStatusText');
+            if (!dot || !text) return;
+
+            if (state === 'online') {
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]';
+                text.textContent = 'Nube Activa';
+            } else if (state === 'saving') {
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
+                text.textContent = 'Guardando...';
+            } else {
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-red-400';
+                text.textContent = 'Modo Local';
+            }
+        }
+
         // ==========================================
-        // UTILIDADES Y ALMACENAMIENTO
+        // UTILIDADES Y ALMACENAMIENTO (LOCAL + CLOUD FIRESTORE)
         // ==========================================
-        function loadState() {
+        function loadLocalFallback() {
             try {
                 const savedVendors = localStorage.getItem(STORAGE_KEY_VENDORS);
                 const savedOps = localStorage.getItem(STORAGE_KEY_OPS);
@@ -585,13 +624,54 @@
             }
         }
 
-        function saveState() {
+        async function saveState() {
+            // 1. Guarda instantáneamente en navegador por seguridad
             try {
                 localStorage.setItem(STORAGE_KEY_VENDORS, JSON.stringify(vendors));
                 localStorage.setItem(STORAGE_KEY_OPS, JSON.stringify(operations));
             } catch (e) {
                 console.error('Error guardando datos en navegador:', e);
             }
+
+            // 2. Guarda en tiempo real en Cloud Firestore
+            try {
+                updateCloudBadge('saving');
+                await setDoc(CLOUD_DOC_REF, {
+                    vendors,
+                    operations,
+                    updatedAt: new Date().toISOString()
+                });
+                updateCloudBadge('online');
+            } catch (e) {
+                console.error('Error guardando en Firestore:', e);
+                updateCloudBadge('offline');
+            }
+        }
+
+        function initRealtimeCloudSync() {
+            onSnapshot(CLOUD_DOC_REF, async (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    vendors = Array.isArray(data.vendors) ? data.vendors : [...DEFAULT_VENDORS];
+                    operations = Array.isArray(data.operations) ? data.operations : [];
+
+                    // Actualiza respaldo local
+                    localStorage.setItem(STORAGE_KEY_VENDORS, JSON.stringify(vendors));
+                    localStorage.setItem(STORAGE_KEY_OPS, JSON.stringify(operations));
+
+                    updateCloudBadge('online');
+                    renderAll();
+                    if (!document.getElementById('vendorsModal').classList.contains('hidden')) {
+                        renderVendorsModalList();
+                    }
+                } else {
+                    // Primera vez que se conecta la base: sube los datos actuales a Firestore
+                    await saveState();
+                }
+            }, (error) => {
+                console.error("Error en conexión Firestore:", error);
+                updateCloudBadge('offline');
+            });
         }
 
         function formatCurrency(num) {
@@ -636,7 +716,6 @@
             return vendors.find(v => v.id === id) || { id: 'unknown', name: 'Sin asignar', color: '#71717a', role: 'VENDEDOR' };
         }
 
-        // Calcula cuántas operaciones suma cada integrante (0.5 si es media venta para los dos vendedores, 1 si es entera, y 1 para el TMK)
         function getMemberScore(member) {
             let total = 0;
             operations.forEach(op => {
@@ -652,10 +731,6 @@
                 }
             });
             return total;
-        }
-
-        function getCategoryConfig(catId) {
-            return CATEGORIES.find(c => c.id === catId) || CATEGORIES[0];
         }
 
         function showToast(msg) {
@@ -709,7 +784,6 @@
         function renderKPIs() {
             const filtered = getFilteredOperations();
             
-            // Si hay un vendedor seleccionado, suma 0.5 en medias ventas y 1 en enteras
             let totalOps = 0;
             let ventasCount = 0;
             let senasCount = 0;
@@ -810,7 +884,6 @@
             const filteredOps = getFilteredOperations();
 
             let html = `
-                <!-- Divisor visual 0KM -->
                 <div class="flex items-center gap-3 pt-2">
                     <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-zinc-800/90 text-zinc-200 border border-white/15">
                         Bloques 0KM (Volkswagen · Peugeot · Chevrolet)
@@ -850,7 +923,6 @@
                         class="liquid-glass rounded-3xl overflow-hidden transition-all" 
                         style="border-top: 2px solid ${hexToRgba(cat.accent, 0.65)}; box-shadow: 0 18px 40px -15px rgba(0,0,0,0.75), inset 0 1px 0 0 ${hexToRgba(cat.accent, 0.25)};"
                     >
-                        <!-- Cabecera Horizontal de la Marca / Categoría con su Color Identificatorio -->
                         <div 
                             class="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                             style="background: linear-gradient(90deg, ${hexToRgba(cat.accent, 0.18)} 0%, rgba(24, 24, 27, 0.4) 60%, rgba(24, 24, 27, 0.2) 100%);"
@@ -888,7 +960,6 @@
                             </div>
                         </div>
 
-                        <!-- Lista Horizontal de Operaciones -->
                         <div class="p-4 space-y-2.5">
                             ${catOps.length === 0 ? `
                                 <div class="py-8 text-center rounded-2xl border border-dashed border-white/10 bg-black/20">
@@ -928,7 +999,6 @@
                         <!-- 1. Vendedor(es) (Entera o ½ + ½) + TMK (si tiene) y Fecha -->
                         <div class="lg:col-span-3 flex flex-col gap-1.5">
                             <div class="flex flex-wrap items-center gap-1.5">
-                                <!-- Vendedor 1 -->
                                 <div 
                                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border"
                                     style="background: ${hexToRgba(v1Color, 0.22)}; border-color: ${hexToRgba(v1Color, 0.5)};"
@@ -939,7 +1009,6 @@
                                     ${isHalf ? `<span class="px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-black/50 text-amber-300 border border-amber-400/30">½</span>` : ''}
                                 </div>
 
-                                <!-- Vendedor 2 (Si es Media Venta) -->
                                 ${isHalf && vendor2 ? `
                                     <span class="text-xs font-bold text-zinc-400">+</span>
                                     <div 
@@ -953,7 +1022,6 @@
                                     </div>
                                 ` : ''}
 
-                                <!-- Etiqueta TMK si intervino un TMK -->
                                 ${tmk ? `
                                     <div 
                                         class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border"
@@ -982,7 +1050,7 @@
                             <div class="text-xs text-zinc-300 truncate mt-0.5">${op.model ? op.model : op.category}</div>
                         </div>
 
-                        <!-- 3. Cambio rápido de Marca/Categoría (Las 5 opciones) -->
+                        <!-- 3. Cambio rápido de Marca/Categoría -->
                         <div class="lg:col-span-2">
                             <label class="block text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Marca / Bloque</label>
                             <select 
@@ -997,7 +1065,7 @@
                             </select>
                         </div>
 
-                        <!-- 4. Valores Manuales: Valor del Vehículo, Porcentaje de Suscripción y Pago -->
+                        <!-- 4. Valores Manuales -->
                         <div class="lg:col-span-3 grid grid-cols-3 gap-2 bg-black/40 p-2.5 rounded-xl border border-white/10">
                             <div>
                                 <span class="block text-[10px] text-zinc-400">Valor Vehículo</span>
@@ -1048,7 +1116,6 @@
                         </div>
                     </div>
 
-                    <!-- Nota del supervisor al pie de la tarjeta horizontal -->
                     ${op.note ? `
                         <div class="mt-2.5 pt-2 border-t border-white/10 flex items-start gap-2 text-xs text-zinc-200">
                             <i data-lucide="sticky-note" class="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5"></i>
@@ -1095,7 +1162,7 @@
             showToast('Operación eliminada');
         };
 
-        // Modal de Operación (Entera vs Media Venta + TMK)
+        // Modal de Operación
         const opModal = document.getElementById('operationModal');
         const opForm = document.getElementById('operationForm');
         const stateBtnSena = document.getElementById('stateBtnSena');
@@ -1240,10 +1307,10 @@
             if (id) {
                 const idx = operations.findIndex(o => o.id === id);
                 if (idx !== -1) operations[idx] = payload;
-                showToast('Operación actualizada');
+                showToast('Operación actualizada en la nube');
             } else {
                 operations.unshift(payload);
-                showToast('Nueva operación registrada');
+                showToast('Nueva operación guardada en la nube');
             }
 
             saveState();
@@ -1404,10 +1471,9 @@
         });
 
         // Inicialización al cargar la página
-        window.addEventListener('DOMContentLoaded', () => {
-            loadState();
-            renderAll();
-        });
+        loadLocalFallback();
+        renderAll();
+        initRealtimeCloudSync();
     </script>
 </body>
 </html>
