@@ -1,388 +1,1412 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/44D1NW6Q/Icono.png">
-    <title>Inventario Automobili Group</title>
-    
-    <meta name="theme-color" content="#450a0a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/44D1NW6Q/Icono.png">
-    <link rel="manifest" href="manifest.json">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Supervisión — Liquid Glass</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 50: '#fef2f2', 900: '#450a0a', 950: '#1c0202' }
-                    }
-                }
-            }
+    <style>
+        :root {
+            --glass-bg: rgba(24, 24, 27, 0.55);
+            --glass-bg-hover: rgba(39, 39, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.11);
+            --glass-highlight: rgba(255, 255, 255, 0.18);
         }
-    </script>
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+            background-color: #18181b;
+            color: #f4f4f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo Gris Oscuro Sólido (Un solo color uniforme) */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-color: #18181b;
+        }
+
+        .orb {
+            display: none;
+        }
+
+        /* Sistema Apple Liquid Glass — Edición Ejecutiva */
+        .liquid-glass {
+            background: linear-gradient(135deg, rgba(39, 39, 42, 0.52) 0%, rgba(18, 18, 21, 0.68) 100%);
+            backdrop-filter: blur(28px) saturate(160%);
+            -webkit-backdrop-filter: blur(28px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 20px 45px -15px rgba(0, 0, 0, 0.78),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .liquid-glass-interactive {
+            background: linear-gradient(135deg, rgba(39, 39, 42, 0.48) 0%, rgba(20, 20, 23, 0.62) 100%);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.11);
+            box-shadow: 
+                0 10px 30px -10px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .liquid-glass-interactive:hover {
+            background: linear-gradient(135deg, rgba(127, 29, 29, 0.28) 0%, rgba(39, 39, 42, 0.58) 100%);
+            border-color: rgba(220, 38, 38, 0.38);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 16px 36px -10px rgba(0, 0, 0, 0.75),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+        }
+
+        .liquid-input {
+            background: rgba(9, 9, 11, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .liquid-input:focus {
+            outline: none;
+            border-color: rgba(220, 38, 38, 0.75);
+            background: rgba(9, 9, 11, 0.75);
+            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.25), inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Scrollbar elegante */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 15, 18, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(185, 28, 28, 0.55);
+        }
+
+        select option {
+            background-color: #141417;
+            color: #f4f4f5;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-full flex flex-col font-sans selection:bg-red-800 selection:text-white">
+<body class="antialiased selection:bg-red-800/40 selection:text-red-100 pb-20">
 
-    <header class="sticky top-0 z-40 bg-gradient-to-r from-red-950 via-red-900 to-rose-950 border-b border-red-900/40 shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 min-h-[5rem] py-3 flex flex-row items-center justify-between gap-4">
-            
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-white p-1 rounded-xl shadow-inner flex items-center justify-center overflow-hidden w-12 h-12 border border-red-800/20 shrink-0">
-                    <img src="https://i.postimg.cc/44D1NW6Q/Icono.png" alt="Logo AG" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/100x100/ffffff/450a0a?text=AG'">
+    <!-- Fondo Ambiental Liquid Glass -->
+    <div class="ambient-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Barra Superior Flotante (Dock de Supervisión) -->
+    <header class="sticky top-3 z-30 mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="liquid-glass rounded-3xl px-5 py-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <!-- Marca y Título -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-900/60 to-zinc-800/80 border border-red-500/30 flex items-center justify-center shadow-inner">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-red-400"></i>
                 </div>
-                <div class="flex flex-col">
-                    <h1 class="text-base sm:text-lg font-black tracking-wider text-white flex items-center gap-1.5 whitespace-nowrap">
-                        AUTOMOBILI GROUP <span class="bg-red-600/30 text-red-200 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-500/30">STOCK</span>
-                    </h1>
-                    <p class="text-[10px] sm:text-xs text-red-200/70 font-medium whitespace-nowrap">Panel Conectado a Google Drive</p>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-white">Panel de Supervisión</h1>
+                        <span class="text-[11px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-950/60 text-red-300 border border-red-700/40">Ejecutivo</span>
+                    </div>
+                    <p class="text-xs text-zinc-400">Control de operaciones por marca, equipo de ventas, señas y pagos</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink">
-                <button onclick="fetchFromGoogleSheets()" class="flex items-center gap-1 bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold shadow-lg shadow-emerald-900/30 transition-all active:scale-95 whitespace-nowrap">
-                    <svg id="syncIcon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path></svg>
-                    <span class="hidden md:inline">Sincronizar Drive</span>
-                    <span class="md:hidden">Sincro</span>
+            <!-- Buscador y Botones de Acción -->
+            <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
+                <!-- Buscador en tiempo real -->
+                <div class="relative flex-grow sm:flex-grow-0 sm:w-72">
+                    <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Buscar cliente, vendedor, nota..." 
+                        class="liquid-input w-full pl-10 pr-8 py-2 rounded-2xl text-sm placeholder:text-zinc-500"
+                    >
+                    <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Filtro Seña / Venta -->
+                <div class="liquid-input rounded-2xl p-1 flex items-center text-xs font-medium">
+                    <button data-status-filter="ALL" class="status-filter-btn px-3 py-1.5 rounded-xl bg-red-900/60 text-white border border-red-500/30 shadow-sm transition-all">Todos</button>
+                    <button data-status-filter="SEÑA" class="status-filter-btn px-3 py-1.5 rounded-xl text-zinc-400 hover:text-white transition-all">Señas</button>
+                    <button data-status-filter="VENTA" class="status-filter-btn px-3 py-1.5 rounded-xl text-zinc-400 hover:text-white transition-all">Ventas</button>
+                </div>
+
+                <!-- Botón Gestionar Vendedores / TMK -->
+                <button id="openVendorsModalBtn" class="liquid-glass-interactive px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-medium text-zinc-100 flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-red-400"></i>
+                    <span>Equipo</span>
                 </button>
-                
-                <a href="https://docs.google.com/spreadsheets/d/15q6vz0bTlKgCqW13OW4qJz3v5-iVbmeF/edit?gid=2132930178#gid=2132930178" target="_blank" class="flex items-center gap-1 bg-blue-700 hover:bg-blue-600 text-white px-2.5 sm:px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold shadow-lg shadow-blue-900/30 transition-all active:scale-95 whitespace-nowrap">
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                    <span class="hidden md:inline">Editar Excel</span>
-                    <span class="md:hidden">Excel</span>
-                </a>
-                <a href="https://gestor-de-documentos-sepia.vercel.app/" target="_blank" class="flex items-center gap-1 bg-blue-700 hover:bg-blue-600 text-white px-2.5 sm:px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold shadow-lg shadow-blue-900/30 transition-all active:scale-95 whitespace-nowrap">
-                    <svg class="w-3.5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                    <span class="hidden md:inline">Gestor de Documentos</span>
-                    <span class="md:hidden">Excel</span>
-                </a>
-            
-                <button id="pwaInstallBtn" class="hidden flex items-center gap-1 bg-amber-600 hover:bg-amber-500 text-white px-2.5 sm:px-3 py-2 rounded-xl text-[10px] sm:text-xs font-bold shadow-lg transition-all whitespace-nowrap">
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    <span>Instalar</span>
+
+                <!-- Botón Nueva Operación -->
+                <button id="openNewOpModalBtn" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 shadow-lg shadow-red-950/50 border border-red-500/35 flex items-center gap-2 transition-all active:scale-95">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Nueva Operación</span>
                 </button>
             </div>
-
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
-        
-        <div id="syncStatus" class="text-center text-xs text-slate-400 bg-slate-800/40 py-1.5 rounded-xl border border-slate-800 hidden animate-pulse">
-            Cargando inventario desde Drive en tiempo real...
+    <!-- Contenedor Principal -->
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 mt-6 space-y-6">
+
+        <!-- Tarjetas de Resumen General (Solo cantidades, sin sumas de dinero) -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-3.5" id="kpiContainer">
+            <!-- Se inyecta dinámicamente -->
+        </section>
+
+        <!-- Barra de Equipo de Vendedores y TMK -->
+        <section class="liquid-glass rounded-3xl p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4 text-red-400"></i>
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-300">Filtrar por Vendedor o TMK</h2>
+                </div>
+                <button id="QuickAddVendorBtn" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 self-start sm:self-auto">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                    <span>Administrar Vendedores y TMK</span>
+                </button>
+            </div>
+            <div id="vendorPillsContainer" class="flex flex-wrap items-center gap-2">
+                <!-- Píldoras de vendedores y TMK generadas por JS -->
+            </div>
+        </section>
+
+        <!-- 5 Bloques Horizontales de Categorías / Marcas (Cada marca con su color) -->
+        <div id="categoriesContainer" class="space-y-6">
+            <!-- Bloques generados dinámicamente:
+                 0km: 1. Volkswagen, 2. Peugeot, 3. Chevrolet
+                 4. Usados
+                 5. Convencionales -->
         </div>
 
-        <section id="dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-slate-800/80 backdrop-blur p-4 rounded-2xl border border-slate-700 flex items-center gap-3">
-                <div class="p-3 bg-red-950 text-red-400 rounded-xl border border-red-900/30">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Flota</p>
-                    <h3 id="statTotalStock" class="text-xl font-black text-white">0</h3>
-                </div>
-            </div>
-            <div class="bg-slate-800/80 backdrop-blur p-4 rounded-2xl border border-slate-700 flex items-center gap-3">
-                <div class="p-3 bg-emerald-950 text-emerald-400 rounded-xl border border-emerald-900/30">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Disponibles</p>
-                    <h3 id="statAvailable" class="text-xl font-black text-emerald-400">0</h3>
-                </div>
-            </div>
-            <div class="bg-slate-800/80 backdrop-blur p-4 rounded-2xl border border-slate-700 flex items-center gap-3">
-                <div class="p-3 bg-amber-950 text-amber-400 rounded-xl border border-amber-900/30">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Señados</p>
-                    <h3 id="statSeñado" class="text-xl font-black text-amber-400">0</h3>
-                </div>
-            </div>
-            <div class="bg-slate-800/80 backdrop-blur p-4 rounded-2xl border border-slate-700 flex items-center gap-3">
-                <div class="p-3 bg-slate-950 text-slate-400 rounded-xl border border-slate-900/30">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-                <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Vendidos</p>
-                    <h3 id="statVendido" class="text-xl font-black text-slate-400">0</h3>
-                </div>
-            </div>
-        </section>
-
-        <section class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-md">
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="relative flex-1">
-                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </span>
-                    <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="Buscar por modelo, patente..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700 transition-all text-sm text-white">
-                </div>
-                <div>
-                    <select id="filterState" onchange="applyFilters()" class="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700 text-sm text-slate-200">
-                        <option value="">Todos los estados</option>
-                        <option value="DISPONIBLE">Disponibles</option>
-                        <option value="SEÑADO">Señados</option>
-                        <option value="VENDIDO">Vendidos</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-
-        <section class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-900/50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-700">
-                            <th class="py-4 px-4">Modelo / Patente</th>
-                            <th class="py-4 px-4 hidden md:table-cell">Año / KM</th>
-                            <th class="py-4 px-4 select-none cursor-pointer hover:bg-slate-900/30 transition-colors" onclick="togglePricesVisibility()">
-                               <span>Precio / Anticipo</span>
-                            </th>
-                            <th class="py-4 px-4 text-center">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryTableBody" class="divide-y divide-slate-700/60 text-sm">
-                    </tbody>
-                </table>
-            </div>
-            
-            <div id="emptyState" class="hidden text-center py-12 text-slate-500 flex flex-col items-center justify-center">
-                <svg class="w-12 h-12 mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-4V8h4m-4 5V8h-4v5m0 0H8V8h4v5"></path></svg>
-                <p class="font-bold">No hay vehículos registrados en este criterio.</p>
-            </div>
-        </section>
     </main>
 
-    <script>
-        const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYoywNVTQjwCasF5XWCKyRYScZbTKzH1csjkC6fOeG6kC7Cf0LKoGmisNzFjos4w/pub?output=csv";
+    <!-- MODAL: Crear / Editar Operación -->
+    <div id="operationModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <div class="liquid-glass rounded-3xl max-w-2xl w-full p-6 sm:p-7 border border-white/15 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-red-900/35 border border-red-500/30 flex items-center justify-center">
+                        <i data-lucide="file-plus-2" class="w-5 h-5 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h3 id="opModalTitle" class="text-lg font-semibold text-white">Nueva Operación</h3>
+                        <p class="text-xs text-zinc-400">Completá los datos del cliente, porcentaje de suscripción y pago manual</p>
+                    </div>
+                </div>
+                <button id="closeOpModalBtn" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-        let stock = [];
-        let hidePricesStatus = false;
+            <form id="operationForm" class="mt-5 space-y-4">
+                <input type="hidden" id="opId">
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log("Service Worker Activo"))
-                    .catch(err => console.log("Error de SW: ", err));
-            }
-
-            const savedStock = localStorage.getItem('ag_inventario_stock');
-            if (savedStock) {
-                try {
-                    stock = JSON.parse(savedStock);
-                    calculateDashboard();
-                    renderStock(stock);
-                } catch(e) {
-                    console.error("Error al cargar localStorage:", e);
-                }
-            }
-            
-            fetchFromGoogleSheets();
-        });
-
-        function fetchFromGoogleSheets() {
-            if (!GOOGLE_SHEETS_CSV_URL || GOOGLE_SHEETS_CSV_URL.includes("TU_ENLACE")) {
-                console.log("Falta configurar el enlace de Google Sheets.");
-                return;
-            }
-
-            const statusDiv = document.getElementById('syncStatus');
-            const syncIcon = document.getElementById('syncIcon');
-            
-            if (statusDiv) {
-                statusDiv.innerText = "Cargando inventario desde Drive en tiempo real...";
-                statusDiv.classList.remove('hidden');
-            }
-            if (syncIcon) syncIcon.classList.add('animate-spin');
-
-            Papa.parse(GOOGLE_SHEETS_CSV_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    if (statusDiv) statusDiv.classList.add('hidden');
-                    if (syncIcon) syncIcon.classList.remove('animate-spin');
-                    if (results.data && results.data.length > 0) {
-                        processRawData(results.data);
-                    }
-                },
-                error: function(err) {
-                    if (statusDiv) {
-                        statusDiv.innerText = "Error al conectar con Drive. Mostrando datos locales.";
-                        statusDiv.classList.remove('hidden');
-                    }
-                    if (syncIcon) syncIcon.classList.remove('animate-spin');
-                    console.error(err);
-                }
-            });
-        }
-
-        function processRawData(rows) {
-            stock = rows.map((row, i) => {
-                const getVal = (names) => {
-                    const match = Object.keys(row).find(k => names.includes(k.trim().toUpperCase()));
-                    return match ? row[match] : "";
-                };
-
-                let modeloTexto = getVal(["MODELO", "VEHICULO", "VEHÍCULO"]);
-                if (!modeloTexto) return null;
-
-                // Forzar conversión segura a String antes de limpiar caracteres de texto
-                let rawPrecio = String(getVal(["PRECIO", "PRECIO TOTAL", "VALOR"]) || "0");
-                let rawAnticipo = String(getVal(["ANTICIPO", "ANTICIPO SUGERIDO", "MINIMO ANTICIPO"]) || "0");
-                let rawKm = String(getVal(["KILOMETROS", "KM", "KILÓMETROS"]) || "0");
-
-                let precio = parseFloat(rawPrecio.replace(/[^0-9]/g, '')) || 0;
-                let anticipo = parseFloat(rawAnticipo.replace(/[^0-9]/g, '')) || 0;
-                let anio = parseInt(getVal(["AÑO", "ANIO", "MODELO_AÑO"])) || 2010;
-                let km = parseInt(rawKm.replace(/[^0-9]/g, '')) || 0;
-
-                let rawEstado = String(getVal(["DISPONIBILIDAD", "ESTADO", "SITUACION"]) || "DISPONIBLE").toUpperCase().trim();
-                let estadoFinal = "DISPONIBLE";
-                if (rawEstado === "SEÑADO" || rawEstado === "S") {
-                    estadoFinal = "SEÑADO";
-                } else if (rawEstado === "VENDIDO" || rawEstado === "V") {
-                    estadoFinal = "VENDIDO";
-                }
-
-                return {
-                    id: `car-${i}`,
-                    modelo: modeloTexto.toUpperCase().trim(),
-                    patente: String(getVal(["PATENTE", "DOMINIO"]) || `S/P-${i}`).toUpperCase().trim(),
-                    combustible: String(getVal(["COMBUSTIBLE"]) || "NAFTA").toUpperCase().trim(),
-                    anio: anio,
-                    kilometros: km,
-                    precio: precio,
-                    anticipo: anticipo,
-                    disponibilidad: estadoFinal
-                };
-            }).filter(c => c !== null && c.modelo !== "");
-
-            localStorage.setItem('ag_inventario_stock', JSON.stringify(stock));
-            calculateDashboard();
-            applyFilters();
-        }
-
-        function calculateDashboard() {
-            document.getElementById('statTotalStock').innerText = stock.length;
-            document.getElementById('statAvailable').innerText = stock.filter(c => c.disponibilidad === "DISPONIBLE").length;
-            document.getElementById('statSeñado').innerText = stock.filter(c => c.disponibilidad === "SEÑADO").length;
-            document.getElementById('statVendido').innerText = stock.filter(c => c.disponibilidad === "VENDIDO").length;
-        }
-
-        function renderStock(carsToRender) {
-            const tbody = document.getElementById('inventoryTableBody');
-            const emptyState = document.getElementById('emptyState');
-            tbody.innerHTML = "";
-
-            if (carsToRender.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            emptyState.classList.add('hidden');
-
-            carsToRender.forEach(car => {
-                let rowBg = "hover:bg-slate-800/40";
-                let badgeText = "DISPONIBLE";
-                let badgeClass = "bg-emerald-950 text-emerald-400 border border-emerald-800/50";
-                
-                if (car.disponibilidad === "SEÑADO") {
-                    badgeText = "SEÑADO";
-                    badgeClass = "bg-amber-950 text-amber-400 border border-amber-800/50";
-                } else if (car.disponibilidad === "VENDIDO") {
-                    badgeText = "VENDIDO";
-                    badgeClass = "bg-slate-900 text-slate-500 border border-slate-800";
-                    rowBg = "bg-slate-900/30 text-slate-500 line-through decoration-slate-700";
-                }
-
-                // Definimos qué mostrar en la celda de precio según el estado de visibilidad
-                let contenidoPrecio = "";
-                if (hidePricesStatus) {
-                    contenidoPrecio = `
-                        <div class="text-xs font-semibold text-slate-500 tracking-wide">-</div>
-                        <div class="text-[10px] text-slate-600">-</div>
-                    `;
-                } else {
-                    contenidoPrecio = `
-                        <div class="font-black text-white">${car.precio > 0 ? '$' + car.precio.toLocaleString('es-AR') : 'Consultar'}</div>
-                        <div class="text-xs text-slate-400">${car.anticipo > 0 ? 'Ant: $' + car.anticipo.toLocaleString('es-AR') : 'Sin anticipo'}</div>
-                    `;
-                }
-
-                const tr = document.createElement('tr');
-                tr.className = `border-b border-slate-800 transition-colors ${rowBg}`;
-                tr.innerHTML = `
-                    <td class="py-3 px-4">
-                        <div class="font-bold text-white">${car.modelo}</div>
-                        <div class="font-mono text-xs text-slate-400 mt-0.5 flex items-center gap-2">
-                            <span class="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${car.patente}</span>
-                            <span class="md:hidden">• ${car.anio} • ${car.kilometros.toLocaleString('es-AR')} km</span>
+                <!-- Bloque de Asignación: Venta Entera vs Media Venta (Compartida) + TMK -->
+                <div class="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/10">
+                        <div>
+                            <span class="text-xs font-semibold text-white">Modalidad de Cierre</span>
+                            <p class="text-[11px] text-zinc-400">Elegí si la operación es de 1 vendedor o compartida (½ y ½)</p>
                         </div>
-                    </td>
-                    <td class="py-3 px-4 hidden md:table-cell">
-                        <div class="font-semibold text-slate-200">${car.anio}</div>
-                        <div class="text-xs text-slate-400">${car.kilometros.toLocaleString('es-AR')} km • ${car.combustible}</div>
-                    </td>
-                    <td class="py-3 px-4 cursor-pointer select-none" onclick="togglePricesVisibility()">
-                        ${contenidoPrecio}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <span class="inline-block px-2.5 py-1 text-[10px] font-extrabold rounded-md ${badgeClass}">
-                            ${badgeText}
-                        </span>
-                    </td>
+                        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/50 border border-white/10 shrink-0">
+                            <button type="button" id="splitBtnFull" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+                                Venta Entera (1)
+                            </button>
+                            <button type="button" id="splitBtnHalf" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1">
+                                <span>Media Venta (½ + ½)</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="opIsHalf" value="false">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <!-- Vendedor 1 -->
+                        <div>
+                            <label id="opVendor1Label" class="block text-xs font-medium text-zinc-300 mb-1.5">Vendedor Asignado *</label>
+                            <select id="opVendor" required class="liquid-input w-full px-3 py-2.5 rounded-2xl text-sm">
+                                <!-- Se llena con JS -->
+                            </select>
+                        </div>
+
+                        <!-- Vendedor 2 (Visible solo si es Media Venta) -->
+                        <div id="secondVendorWrapper" class="hidden">
+                            <label class="block text-xs font-medium text-amber-300 mb-1.5">2° Vendedor (Media Venta ½) *</label>
+                            <select id="opVendor2" class="liquid-input w-full px-3 py-2.5 rounded-2xl text-sm border-amber-500/35">
+                                <!-- Se llena con JS -->
+                            </select>
+                        </div>
+
+                        <!-- TMK (Opcional) -->
+                        <div id="tmkSelectWrapper" class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-zinc-300 mb-1.5">TMK (Pase de dato opcional)</label>
+                            <select id="opTmk" class="liquid-input w-full px-3 py-2.5 rounded-2xl text-sm">
+                                <!-- Se llena con JS -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Marca / Categoría (5 opciones) -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Marca / Categoría *</label>
+                        <select id="opCategory" required class="liquid-input w-full px-3.5 py-2.5 rounded-2xl text-sm">
+                            <optgroup label="0KM">
+                                <option value="Volkswagen">Volkswagen (0km)</option>
+                                <option value="Peugeot">Peugeot (0km)</option>
+                                <option value="Chevrolet">Chevrolet (0km)</option>
+                            </optgroup>
+                            <optgroup label="Otras Categorías">
+                                <option value="Usados">Usados</option>
+                                <option value="Convencionales">Convencionales</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Apellido y Nombre del Cliente -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Apellido y Nombre del Cliente *</label>
+                        <input type="text" id="opClient" required placeholder="Ej: Gómez, Juan Carlos" class="liquid-input w-full px-3.5 py-2.5 rounded-2xl text-sm">
+                    </div>
+
+                    <!-- Fecha -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Fecha *</label>
+                        <input type="date" id="opDate" required class="liquid-input w-full px-3.5 py-2.5 rounded-2xl text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Vehículo / Modelo detalle opcional -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Vehículo / Modelo (Opcional)</label>
+                        <input type="text" id="opModel" placeholder="Ej: 208 Active / Amarok V6 / Onix" class="liquid-input w-full px-3.5 py-2.5 rounded-2xl text-sm">
+                    </div>
+
+                    <!-- Estado Manual: Seña o Venta -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Estado de Operación (Manual) *</label>
+                        <div class="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10">
+                            <button type="button" id="stateBtnSena" class="py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                SEÑA
+                            </button>
+                            <button type="button" id="stateBtnVenta" class="py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                VENTA
+                            </button>
+                        </div>
+                        <input type="hidden" id="opStatus" value="SEÑA">
+                    </div>
+                </div>
+
+                <!-- Bloque Financiero Manual: Valor del Vehículo, Porcentaje de Suscripción y Pago -->
+                <div class="p-4 rounded-2xl bg-black/30 border border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5">Valor del Vehículo ($) *</label>
+                        <input type="number" id="opValue" step="any" min="0" required placeholder="Ej: 24500000" class="liquid-input w-full px-3.5 py-2 rounded-xl text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-300 mb-1.5 flex items-center justify-between">
+                            <span>Porcentaje (%) *</span>
+                            <span class="text-[10px] text-zinc-400 font-normal">Manual (ej: 100, 70)</span>
+                        </label>
+                        <input type="text" id="opPercentage" required placeholder="Ej: 100% o 70%" class="liquid-input w-full px-3.5 py-2 rounded-xl text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-red-300 mb-1.5 flex items-center justify-between">
+                            <span>Pago ($) *</span>
+                            <span class="text-[10px] text-zinc-400 font-normal">Carga manual</span>
+                        </label>
+                        <input type="number" id="opPayment" step="any" min="0" required placeholder="Monto abonado" class="liquid-input w-full px-3.5 py-2 rounded-xl text-sm font-semibold text-white border-red-500/35">
+                    </div>
+                </div>
+
+                <!-- Nota del Supervisor -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-300 mb-1.5">Nota del Supervisor</label>
+                    <textarea id="opNote" rows="2" placeholder="Anotaciones clave de la carpeta, documentación, acuerdos..." class="liquid-input w-full px-3.5 py-2.5 rounded-2xl text-sm resize-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                    <button type="button" id="cancelOpModalBtn" class="px-4 py-2.5 rounded-2xl text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-2xl text-xs font-semibold text-white bg-gradient-to-r from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 shadow-lg shadow-red-950/50 border border-red-500/35 transition-all">
+                        Guardar Operación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Gestión de Equipo (Vendedores y TMK) -->
+    <div id="vendorsModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <div class="liquid-glass rounded-3xl max-w-lg w-full p-6 border border-white/15 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-red-900/35 border border-red-500/30 flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Equipo: Vendedores y TMK</h3>
+                        <p class="text-xs text-zinc-400">Elegí color y definí si es Vendedor o TMK</p>
+                    </div>
+                </div>
+                <button id="closeVendorsModalBtn" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Formulario Nuevo Integrante -->
+            <form id="vendorForm" class="mt-4 p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-2.5">
+                <div class="text-xs font-medium text-zinc-300">Agregar integrante (Color + Nombre + Rol)</div>
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <input type="color" id="newVendorColor" value="#3b82f6" title="Elegir color" class="w-10 h-10 rounded-xl bg-transparent border border-white/15 cursor-pointer shrink-0 p-1">
+                    <input type="text" id="newVendorName" required placeholder="Nombre y apellido..." class="liquid-input flex-grow px-3.5 py-2 rounded-xl text-sm">
+                    <select id="newVendorRole" class="liquid-input px-3 py-2 rounded-xl text-xs font-semibold shrink-0">
+                        <option value="VENDEDOR">Vendedor</option>
+                        <option value="TMK">TMK</option>
+                    </select>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-800 hover:bg-red-700 border border-red-500/30 transition-colors shrink-0">
+                        Añadir
+                    </button>
+                </div>
+            </form>
+
+            <!-- Lista de Integrantes Actuales -->
+            <div class="mt-4 space-y-2" id="vendorsListModal">
+                <!-- Se inyecta con JS -->
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-white/10 flex justify-end">
+                <button type="button" id="doneVendorsModalBtn" class="px-5 py-2 rounded-2xl text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors">
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificación Sutil -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300">
+        <div class="liquid-glass rounded-2xl px-4 py-3 flex items-center gap-2.5 border border-white/20 shadow-2xl">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+            <span id="toastMessage" class="text-xs font-medium text-white">Cambios guardados</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN DE LOS 5 BLOQUES / MARCAS
+        // ==========================================
+        const CATEGORIES = [
+            {
+                id: 'Volkswagen',
+                title: 'Volkswagen',
+                badge: '0KM',
+                subtitle: 'Operaciones y suscripciones 0km de la línea Volkswagen',
+                accent: '#3b82f6'
+            },
+            {
+                id: 'Peugeot',
+                title: 'Peugeot',
+                badge: '0KM',
+                subtitle: 'Operaciones y suscripciones 0km de la línea Peugeot',
+                accent: '#6366f1'
+            },
+            {
+                id: 'Chevrolet',
+                title: 'Chevrolet',
+                badge: '0KM',
+                subtitle: 'Operaciones y suscripciones 0km de la línea Chevrolet',
+                accent: '#f59e0b'
+            },
+            {
+                id: 'Usados',
+                title: 'Usados',
+                badge: 'USADOS',
+                subtitle: 'Operaciones de unidades seleccionadas y multimarca usados',
+                accent: '#dc2626'
+            },
+            {
+                id: 'Convencionales',
+                title: 'Convencionales',
+                badge: 'CONVENCIONAL',
+                subtitle: 'Ventas convencionales, entregas directas y operaciones especiales',
+                accent: '#10b981'
+            }
+        ];
+
+        const STORAGE_KEY_VENDORS = 'supervisor_lg_vendors_v4';
+        const STORAGE_KEY_OPS = 'supervisor_lg_operations_v3';
+
+        const DEFAULT_VENDORS = [
+            { id: 'v1', name: 'Martín Silva', color: '#3b82f6', role: 'VENDEDOR' },
+            { id: 'v2', name: 'Lucía Fernández', color: '#ec4899', role: 'VENDEDOR' },
+            { id: 'v3', name: 'Santiago Gómez', color: '#f59e0b', role: 'VENDEDOR' },
+            { id: 'v4', name: 'Valentina Ruiz', color: '#10b981', role: 'VENDEDOR' },
+            { id: 't1', name: 'Camila Torres', color: '#a855f7', role: 'TMK' }
+        ];
+
+        const DEFAULT_OPERATIONS = [
+            {
+                id: 'op1',
+                vendorId: 'v1',
+                isHalf: false,
+                secondVendorId: '',
+                tmkId: 't1',
+                category: 'Volkswagen',
+                client: 'Acosta, Roberto',
+                date: new Date().toISOString().split('T')[0],
+                model: 'Polo Track MSI',
+                value: 23800000,
+                percentage: '100%',
+                payment: 480000,
+                status: 'VENTA',
+                note: 'Suscripción al 100%. Dato pasado por TMK. Firma el jueves.'
+            },
+            {
+                id: 'op2',
+                vendorId: 'v2',
+                isHalf: true,
+                secondVendorId: 'v3',
+                tmkId: '',
+                category: 'Peugeot',
+                client: 'Pereyra, María Sol',
+                date: new Date().toISOString().split('T')[0],
+                model: '208 Allure Pk',
+                value: 26400000,
+                percentage: '70%',
+                payment: 290000,
+                status: 'SEÑA',
+                note: 'Media venta compartida (½ Lucía y ½ Santiago). Entró al 70%.'
+            },
+            {
+                id: 'op3',
+                vendorId: 'v3',
+                isHalf: false,
+                secondVendorId: '',
+                tmkId: '',
+                category: 'Chevrolet',
+                client: 'Benítez, Hernán',
+                date: new Date().toISOString().split('T')[0],
+                model: 'Onix LTZ 1.0T',
+                value: 25900000,
+                percentage: '100%',
+                payment: 520000,
+                status: 'VENTA',
+                note: 'Suscripción 100% integrada. Carpeta controlada.'
+            },
+            {
+                id: 'op4',
+                vendorId: 'v4',
+                isHalf: false,
+                secondVendorId: '',
+                tmkId: 't1',
+                category: 'Usados',
+                client: 'Molina, Carlos Alberto',
+                date: new Date().toISOString().split('T')[0],
+                model: 'Toyota Hilux SRX 2021',
+                value: 39500000,
+                percentage: '50%',
+                payment: 600000,
+                status: 'SEÑA',
+                note: 'Reserva tomada. Peritaje de toma aprobado.'
+            },
+            {
+                id: 'op5',
+                vendorId: 'v1',
+                isHalf: false,
+                secondVendorId: '',
+                tmkId: '',
+                category: 'Convencionales',
+                client: 'Ledesma, Julieta',
+                date: new Date().toISOString().split('T')[0],
+                model: 'Amarok V6 Comfortline',
+                value: 46000000,
+                percentage: '100%',
+                payment: 950000,
+                status: 'VENTA',
+                note: 'Operación convencional cerrada. Pago acreditado.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let vendors = [];
+        let operations = [];
+        let activeVendorFilter = 'ALL';
+        let activeStatusFilter = 'ALL';
+        let searchQuery = '';
+
+        // ==========================================
+        // UTILIDADES Y ALMACENAMIENTO
+        // ==========================================
+        function loadState() {
+            try {
+                const savedVendors = localStorage.getItem(STORAGE_KEY_VENDORS);
+                const savedOps = localStorage.getItem(STORAGE_KEY_OPS);
+                const fallbackColors = ['#3b82f6', '#ec4899', '#f59e0b', '#10b981', '#a855f7', '#06b6d4'];
+                vendors = savedVendors ? JSON.parse(savedVendors) : [...DEFAULT_VENDORS];
+                vendors = vendors.map((v, idx) => ({
+                    ...v,
+                    color: v.color || fallbackColors[idx % fallbackColors.length],
+                    role: v.role || 'VENDEDOR'
+                }));
+                operations = savedOps ? JSON.parse(savedOps) : [...DEFAULT_OPERATIONS];
+            } catch (e) {
+                vendors = [...DEFAULT_VENDORS];
+                operations = [...DEFAULT_OPERATIONS];
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY_VENDORS, JSON.stringify(vendors));
+                localStorage.setItem(STORAGE_KEY_OPS, JSON.stringify(operations));
+            } catch (e) {
+                console.error('Error guardando datos en navegador:', e);
+            }
+        }
+
+        function formatCurrency(num) {
+            const n = Number(num) || 0;
+            return new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+                maximumFractionDigits: 0
+            }).format(n);
+        }
+
+        function formatPercentage(val) {
+            if (val === undefined || val === null || val === '') return '-';
+            const str = String(val).trim();
+            return str.endsWith('%') ? str : `${str}%`;
+        }
+
+        function formatCountNumber(num) {
+            return Number.isInteger(num) ? String(num) : num.toFixed(1).replace('.0', '');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function hexToRgba(hex, alpha = 1) {
+            let c = hex ? hex.replace('#', '') : 'dc2626';
+            if (c.length === 3) {
+                c = c.split('').map(ch => ch + ch).join('');
+            }
+            const num = parseInt(c, 16);
+            const r = (num >> 16) & 255;
+            const g = (num >> 8) & 255;
+            const b = num & 255;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function getVendorById(id) {
+            return vendors.find(v => v.id === id) || { id: 'unknown', name: 'Sin asignar', color: '#71717a', role: 'VENDEDOR' };
+        }
+
+        // Calcula cuántas operaciones suma cada integrante (0.5 si es media venta para los dos vendedores, 1 si es entera, y 1 para el TMK)
+        function getMemberScore(member) {
+            let total = 0;
+            operations.forEach(op => {
+                if (member.role === 'TMK') {
+                    if (op.tmkId === member.id) total += 1;
+                } else {
+                    if (op.isHalf && op.secondVendorId) {
+                        if (op.vendorId === member.id) total += 0.5;
+                        if (op.secondVendorId === member.id) total += 0.5;
+                    } else {
+                        if (op.vendorId === member.id) total += 1;
+                    }
+                }
+            });
+            return total;
+        }
+
+        function getCategoryConfig(catId) {
+            return CATEGORIES.find(c => c.id === catId) || CATEGORIES[0];
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.textContent = msg;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2400);
+        }
+
+        // ==========================================
+        // FILTRADO DE OPERACIONES
+        // ==========================================
+        function getFilteredOperations() {
+            return operations.filter(op => {
+                if (activeVendorFilter !== 'ALL') {
+                    const matchVendor1 = op.vendorId === activeVendorFilter;
+                    const matchVendor2 = op.isHalf && op.secondVendorId === activeVendorFilter;
+                    const matchTmk = op.tmkId === activeVendorFilter;
+                    if (!matchVendor1 && !matchVendor2 && !matchTmk) return false;
+                }
+
+                if (activeStatusFilter !== 'ALL' && op.status !== activeStatusFilter) return false;
+
+                if (searchQuery.trim() !== '') {
+                    const q = searchQuery.toLowerCase().trim();
+                    const vendor1 = getVendorById(op.vendorId);
+                    const vendor2 = op.isHalf && op.secondVendorId ? getVendorById(op.secondVendorId) : { name: '' };
+                    const tmk = op.tmkId ? getVendorById(op.tmkId) : { name: '' };
+                    const haystack = `${op.client} ${vendor1.name} ${vendor2.name} ${tmk.name} ${op.category} ${op.model || ''} ${op.note || ''} ${op.status} ${op.percentage || ''}`.toLowerCase();
+                    if (!haystack.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        // ==========================================
+        // RENDERIZADO DE INTERFAZ
+        // ==========================================
+        function renderAll() {
+            renderKPIs();
+            renderVendorPills();
+            renderCategoryBlocks();
+            lucide.createIcons();
+        }
+
+        function renderKPIs() {
+            const filtered = getFilteredOperations();
+            
+            // Si hay un vendedor seleccionado, suma 0.5 en medias ventas y 1 en enteras
+            let totalOps = 0;
+            let ventasCount = 0;
+            let senasCount = 0;
+
+            filtered.forEach(op => {
+                let weight = 1;
+                if (activeVendorFilter !== 'ALL') {
+                    const selectedMember = getVendorById(activeVendorFilter);
+                    if (selectedMember.role !== 'TMK' && op.isHalf && op.secondVendorId) {
+                        weight = 0.5;
+                    }
+                }
+                totalOps += weight;
+                if (op.status === 'VENTA') ventasCount += weight;
+                if (op.status === 'SEÑA') senasCount += weight;
+            });
+
+            const kpiContainer = document.getElementById('kpiContainer');
+            kpiContainer.innerHTML = `
+                <div class="liquid-glass rounded-3xl p-4 flex items-center justify-between border-l-4 border-l-red-600">
+                    <div>
+                        <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider">Total Operaciones</p>
+                        <p class="text-2xl font-bold text-white mt-1">${formatCountNumber(totalOps)}</p>
+                        <p class="text-[11px] text-zinc-400 mt-0.5">Incluye enteras y medias ventas (½)</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-red-950/60 border border-red-500/30 flex items-center justify-center">
+                        <i data-lucide="folder-kanban" class="w-5 h-5 text-red-400"></i>
+                    </div>
+                </div>
+
+                <div class="liquid-glass rounded-3xl p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
+                    <div>
+                        <p class="text-xs text-emerald-300/90 font-medium uppercase tracking-wider">Ventas Cerradas</p>
+                        <p class="text-2xl font-bold text-emerald-300 mt-1">${formatCountNumber(ventasCount)}</p>
+                        <p class="text-[11px] text-zinc-400 mt-0.5">Operaciones con estado Venta</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-400/25 flex items-center justify-center">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-300"></i>
+                    </div>
+                </div>
+
+                <div class="liquid-glass rounded-3xl p-4 flex items-center justify-between border-l-4 border-l-amber-500">
+                    <div>
+                        <p class="text-xs text-amber-300/90 font-medium uppercase tracking-wider">Señas Activas</p>
+                        <p class="text-2xl font-bold text-amber-300 mt-1">${formatCountNumber(senasCount)}</p>
+                        <p class="text-[11px] text-zinc-400 mt-0.5">Operaciones en estado Seña</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-400/25 flex items-center justify-center">
+                        <i data-lucide="clock" class="w-5 h-5 text-amber-300"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVendorPills() {
+            const container = document.getElementById('vendorPillsContainer');
+            const allActive = activeVendorFilter === 'ALL';
+
+            let html = `
+                <button 
+                    onclick="setVendorFilter('ALL')" 
+                    class="px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 border ${
+                        allActive 
+                            ? 'bg-red-900/60 text-white border-red-500/50 shadow-md shadow-red-950/50' 
+                            : 'bg-zinc-900/60 text-zinc-300 border-white/10 hover:bg-zinc-800/80'
+                    }"
+                >
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-red-400"></i>
+                    <span>Todos (${operations.length})</span>
+                </button>
+            `;
+
+            vendors.forEach(v => {
+                const count = getMemberScore(v);
+                const isSelected = activeVendorFilter === v.id;
+                const vColor = v.color || '#3b82f6';
+                const isTmk = v.role === 'TMK';
+
+                html += `
+                    <button 
+                        onclick="setVendorFilter('${v.id}')"
+                        style="background: ${isSelected ? hexToRgba(vColor, 0.28) : hexToRgba(vColor, 0.1)}; border-color: ${isSelected ? vColor : hexToRgba(vColor, 0.35)};"
+                        class="px-3.5 py-2 rounded-2xl text-xs font-medium transition-all flex items-center gap-2 border hover:brightness-110"
+                    >
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${vColor}; box-shadow: 0 0 8px ${vColor};"></span>
+                        <span class="font-semibold text-white">${v.name}</span>
+                        ${isTmk ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-white/15 text-white border border-white/20">TMK</span>` : ''}
+                        <span class="px-1.5 py-0.5 rounded-lg text-[10px] bg-black/40 text-zinc-200 border border-white/5">${formatCountNumber(count)}</span>
+                    </button>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function togglePricesVisibility() {
-            hidePricesStatus = !hidePricesStatus; 
-            applyFilters();
-        }
-
-        function applyFilters() {
-            const q = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const state = document.getElementById('filterState').value;
-
-            const res = stock.filter(c => {
-                const matchQ = c.modelo.toLowerCase().includes(q) || c.patente.toLowerCase().includes(q);
-                const matchS = !state || c.disponibilidad === state;
-                return matchQ && matchS;
             });
 
-            renderStock(res);
+            container.innerHTML = html;
         }
 
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
+        function renderCategoryBlocks() {
+            const container = document.getElementById('categoriesContainer');
+            const filteredOps = getFilteredOperations();
+
+            let html = `
+                <!-- Divisor visual 0KM -->
+                <div class="flex items-center gap-3 pt-2">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-zinc-800/90 text-zinc-200 border border-white/15">
+                        Bloques 0KM (Volkswagen · Peugeot · Chevrolet)
+                    </span>
+                    <div class="h-px flex-grow bg-gradient-to-r from-red-800/50 to-transparent"></div>
+                </div>
+            `;
+
+            CATEGORIES.forEach((cat) => {
+                if (cat.id === 'Usados') {
+                    html += `
+                        <div class="flex items-center gap-3 pt-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-red-950/80 text-red-200 border border-red-700/40">
+                                Bloque Usados
+                            </span>
+                            <div class="h-px flex-grow bg-gradient-to-r from-red-700/40 to-transparent"></div>
+                        </div>
+                    `;
+                }
+                if (cat.id === 'Convencionales') {
+                    html += `
+                        <div class="flex items-center gap-3 pt-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-emerald-950/80 text-emerald-200 border border-emerald-700/40">
+                                Bloque Convencionales
+                            </span>
+                            <div class="h-px flex-grow bg-gradient-to-r from-emerald-700/40 to-transparent"></div>
+                        </div>
+                    `;
+                }
+
+                const catOps = filteredOps.filter(o => o.category === cat.id);
+                const catVentas = catOps.filter(o => o.status === 'VENTA').length;
+                const catSenas = catOps.filter(o => o.status === 'SEÑA').length;
+
+                html += `
+                    <section 
+                        class="liquid-glass rounded-3xl overflow-hidden transition-all" 
+                        style="border-top: 2px solid ${hexToRgba(cat.accent, 0.65)}; box-shadow: 0 18px 40px -15px rgba(0,0,0,0.75), inset 0 1px 0 0 ${hexToRgba(cat.accent, 0.25)};"
+                    >
+                        <!-- Cabecera Horizontal de la Marca / Categoría con su Color Identificatorio -->
+                        <div 
+                            class="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            style="background: linear-gradient(90deg, ${hexToRgba(cat.accent, 0.18)} 0%, rgba(24, 24, 27, 0.4) 60%, rgba(24, 24, 27, 0.2) 100%);"
+                        >
+                            <div class="flex items-center gap-3">
+                                <span class="w-4 h-4 rounded-full shrink-0" style="background-color: ${cat.accent}; box-shadow: 0 0 14px ${cat.accent};"></span>
+                                <div>
+                                    <div class="flex items-center gap-2.5">
+                                        <h3 class="text-base sm:text-lg font-bold tracking-tight text-white">${cat.title}</h3>
+                                        <span 
+                                            class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-lg border"
+                                            style="background: ${hexToRgba(cat.accent, 0.2)}; color: #ffffff; border-color: ${hexToRgba(cat.accent, 0.45)};"
+                                        >${cat.badge}</span>
+                                        <span class="text-xs text-zinc-400">(${catOps.length} ${catOps.length === 1 ? 'operación' : 'operaciones'})</span>
+                                    </div>
+                                    <p class="text-xs text-zinc-400">${cat.subtitle}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="px-3.5 py-1.5 rounded-2xl bg-black/40 border border-white/10 text-xs flex items-center gap-3">
+                                    <span class="text-amber-300 font-semibold">${catSenas} Señas</span>
+                                    <span class="text-zinc-600">|</span>
+                                    <span class="text-emerald-300 font-semibold">${catVentas} Ventas</span>
+                                </div>
+
+                                <button 
+                                    onclick="openNewOpModalForCategory('${cat.id}')" 
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white border flex items-center gap-1.5 transition-all hover:brightness-110"
+                                    style="background: ${hexToRgba(cat.accent, 0.28)}; border-color: ${hexToRgba(cat.accent, 0.55)};"
+                                >
+                                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    <span>Cargar en ${cat.title}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lista Horizontal de Operaciones -->
+                        <div class="p-4 space-y-2.5">
+                            ${catOps.length === 0 ? `
+                                <div class="py-8 text-center rounded-2xl border border-dashed border-white/10 bg-black/20">
+                                    <p class="text-xs text-zinc-400">No hay operaciones registradas en <strong>${cat.title}</strong> con el filtro actual.</p>
+                                </div>
+                            ` : catOps.map(op => renderOperationRow(op, cat)).join('')}
+                        </div>
+                    </section>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderOperationRow(op, cat) {
+            const vendor1 = getVendorById(op.vendorId);
+            const isHalf = Boolean(op.isHalf && op.secondVendorId);
+            const vendor2 = isHalf ? getVendorById(op.secondVendorId) : null;
+            const tmk = op.tmkId ? getVendorById(op.tmkId) : null;
+
+            const isVenta = op.status === 'VENTA';
+            const v1Color = vendor1.color || '#3b82f6';
+            const v2Color = vendor2 ? (vendor2.color || '#f59e0b') : v1Color;
+            const paymentValue = op.payment !== undefined ? op.payment : (op.commission || 0);
+
+            const rowBackground = isHalf
+                ? `linear-gradient(90deg, ${hexToRgba(v1Color, 0.20)} 0%, ${hexToRgba(v2Color, 0.16)} 45%, rgba(24, 24, 27, 0.55) 100%)`
+                : `linear-gradient(90deg, ${hexToRgba(v1Color, 0.18)} 0%, ${hexToRgba(v1Color, 0.08)} 38%, rgba(24, 24, 27, 0.55) 100%)`;
+
+            return `
+                <div 
+                    class="rounded-2xl p-3.5 transition-all hover:scale-[1.002]"
+                    style="background: ${rowBackground}; border: 1px solid ${hexToRgba(v1Color, 0.35)}; border-left: 5px solid ${v1Color};"
+                >
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+                        
+                        <!-- 1. Vendedor(es) (Entera o ½ + ½) + TMK (si tiene) y Fecha -->
+                        <div class="lg:col-span-3 flex flex-col gap-1.5">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <!-- Vendedor 1 -->
+                                <div 
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border"
+                                    style="background: ${hexToRgba(v1Color, 0.22)}; border-color: ${hexToRgba(v1Color, 0.5)};"
+                                >
+                                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${v1Color}; box-shadow: 0 0 8px ${v1Color};"></span>
+                                    <span class="text-xs font-semibold text-white">${vendor1.name}</span>
+                                    ${vendor1.role === 'TMK' ? `<span class="px-1 py-0.2 rounded text-[9px] font-bold bg-white/15 text-white">TMK</span>` : ''}
+                                    ${isHalf ? `<span class="px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-black/50 text-amber-300 border border-amber-400/30">½</span>` : ''}
+                                </div>
+
+                                <!-- Vendedor 2 (Si es Media Venta) -->
+                                ${isHalf && vendor2 ? `
+                                    <span class="text-xs font-bold text-zinc-400">+</span>
+                                    <div 
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border"
+                                        style="background: ${hexToRgba(v2Color, 0.22)}; border-color: ${hexToRgba(v2Color, 0.5)};"
+                                    >
+                                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${v2Color}; box-shadow: 0 0 8px ${v2Color};"></span>
+                                        <span class="text-xs font-semibold text-white">${vendor2.name}</span>
+                                        ${vendor2.role === 'TMK' ? `<span class="px-1 py-0.2 rounded text-[9px] font-bold bg-white/15 text-white">TMK</span>` : ''}
+                                        <span class="px-1.5 py-0.2 rounded-md text-[10px] font-bold bg-black/50 text-amber-300 border border-amber-400/30">½</span>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Etiqueta TMK si intervino un TMK -->
+                                ${tmk ? `
+                                    <div 
+                                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border"
+                                        style="background: ${hexToRgba(tmk.color, 0.18)}; border-color: ${hexToRgba(tmk.color, 0.45)};"
+                                    >
+                                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${tmk.color};"></span>
+                                        <span class="text-[11px] font-medium text-zinc-100">${tmk.name}</span>
+                                        <span class="px-1 py-0.2 rounded text-[9px] font-bold uppercase bg-white/15 text-white border border-white/20">TMK</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="text-[11px] text-zinc-400 flex items-center gap-2">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="calendar" class="w-3 h-3 text-zinc-500"></i>
+                                    <span>${formatDate(op.date)}</span>
+                                </span>
+                                ${isHalf ? `<span class="text-[10px] font-semibold text-amber-300/90">• Media Venta (0.5 c/u)</span>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- 2. Cliente y Vehículo -->
+                        <div class="lg:col-span-2">
+                            <div class="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Cliente</div>
+                            <div class="text-sm font-bold text-white truncate">${op.client}</div>
+                            <div class="text-xs text-zinc-300 truncate mt-0.5">${op.model ? op.model : op.category}</div>
+                        </div>
+
+                        <!-- 3. Cambio rápido de Marca/Categoría (Las 5 opciones) -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Marca / Bloque</label>
+                            <select 
+                                onchange="changeOpCategory('${op.id}', this.value)"
+                                class="liquid-input w-full px-2.5 py-1.5 rounded-xl text-xs font-medium cursor-pointer"
+                            >
+                                <option value="Volkswagen" ${op.category === 'Volkswagen' ? 'selected' : ''}>Volkswagen (0km)</option>
+                                <option value="Peugeot" ${op.category === 'Peugeot' ? 'selected' : ''}>Peugeot (0km)</option>
+                                <option value="Chevrolet" ${op.category === 'Chevrolet' ? 'selected' : ''}>Chevrolet (0km)</option>
+                                <option value="Usados" ${op.category === 'Usados' ? 'selected' : ''}>Usados</option>
+                                <option value="Convencionales" ${op.category === 'Convencionales' ? 'selected' : ''}>Convencionales</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Valores Manuales: Valor del Vehículo, Porcentaje de Suscripción y Pago -->
+                        <div class="lg:col-span-3 grid grid-cols-3 gap-2 bg-black/40 p-2.5 rounded-xl border border-white/10">
+                            <div>
+                                <span class="block text-[10px] text-zinc-400">Valor Vehículo</span>
+                                <span class="text-xs font-semibold text-white">${formatCurrency(op.value)}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] text-zinc-400">Porcentaje</span>
+                                <span class="text-xs font-bold text-red-300">${formatPercentage(op.percentage)}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] text-zinc-400">Pago</span>
+                                <span class="text-xs font-bold text-emerald-300">${formatCurrency(paymentValue)}</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Casilla Manual Seña / Venta y Acciones -->
+                        <div class="lg:col-span-2 flex items-center justify-between lg:justify-end gap-2">
+                            <button 
+                                onclick="toggleOpStatus('${op.id}')"
+                                title="Clic para cambiar manualmente entre Seña y Venta"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide flex items-center gap-1.5 border transition-all active:scale-95 ${
+                                    isVenta 
+                                        ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400/50 shadow-lg shadow-emerald-950/30' 
+                                        : 'bg-amber-500/20 text-amber-200 border-amber-400/50 shadow-lg shadow-amber-950/30'
+                                }"
+                            >
+                                <span class="w-2 h-2 rounded-full ${isVenta ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+                                <span>${op.status}</span>
+                                <i data-lucide="repeat" class="w-3 h-3 opacity-70 ml-0.5"></i>
+                            </button>
+
+                            <div class="flex items-center gap-1">
+                                <button 
+                                    onclick="editOperation('${op.id}')" 
+                                    title="Editar operación"
+                                    class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white border border-white/10 transition-colors"
+                                >
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button 
+                                    onclick="deleteOperation('${op.id}')" 
+                                    title="Eliminar operación"
+                                    class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/20 transition-colors"
+                                >
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nota del supervisor al pie de la tarjeta horizontal -->
+                    ${op.note ? `
+                        <div class="mt-2.5 pt-2 border-t border-white/10 flex items-start gap-2 text-xs text-zinc-200">
+                            <i data-lucide="sticky-note" class="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5"></i>
+                            <div>
+                                <span class="font-semibold text-zinc-400 mr-1">Nota del Supervisor:</span>
+                                <span>${op.note}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // INTERACCIONES Y LÓGICA DE OPERACIONES
+        // ==========================================
+        window.setVendorFilter = function(vendorId) {
+            activeVendorFilter = vendorId;
+            renderAll();
+        };
+
+        window.toggleOpStatus = function(opId) {
+            const op = operations.find(o => o.id === opId);
+            if (!op) return;
+            op.status = op.status === 'SEÑA' ? 'VENTA' : 'SEÑA';
+            saveState();
+            renderAll();
+            showToast(`Estado cambiado a ${op.status}`);
+        };
+
+        window.changeOpCategory = function(opId, newCategory) {
+            const op = operations.find(o => o.id === opId);
+            if (!op) return;
+            op.category = newCategory;
+            saveState();
+            renderAll();
+            showToast(`Movido al bloque ${newCategory}`);
+        };
+
+        window.deleteOperation = function(opId) {
+            operations = operations.filter(o => o.id !== opId);
+            saveState();
+            renderAll();
+            showToast('Operación eliminada');
+        };
+
+        // Modal de Operación (Entera vs Media Venta + TMK)
+        const opModal = document.getElementById('operationModal');
+        const opForm = document.getElementById('operationForm');
+        const stateBtnSena = document.getElementById('stateBtnSena');
+        const stateBtnVenta = document.getElementById('stateBtnVenta');
+        const opStatusInput = document.getElementById('opStatus');
+
+        const splitBtnFull = document.getElementById('splitBtnFull');
+        const splitBtnHalf = document.getElementById('splitBtnHalf');
+        const opIsHalfInput = document.getElementById('opIsHalf');
+        const secondVendorWrapper = document.getElementById('secondVendorWrapper');
+        const tmkSelectWrapper = document.getElementById('tmkSelectWrapper');
+        const opVendor1Label = document.getElementById('opVendor1Label');
+
+        function updateSplitUI(isHalf) {
+            opIsHalfInput.value = isHalf ? 'true' : 'false';
+            if (isHalf) {
+                splitBtnHalf.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/25 text-amber-200 border border-amber-400/50 shadow-sm flex items-center justify-center gap-1';
+                splitBtnFull.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white';
+                secondVendorWrapper.classList.remove('hidden');
+                tmkSelectWrapper.classList.remove('sm:col-span-2');
+                opVendor1Label.textContent = '1° Vendedor (Media Venta ½) *';
+            } else {
+                splitBtnFull.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-red-900/60 text-white border border-red-500/40 shadow-sm';
+                splitBtnHalf.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white flex items-center justify-center gap-1';
+                secondVendorWrapper.classList.add('hidden');
+                tmkSelectWrapper.classList.add('sm:col-span-2');
+                opVendor1Label.textContent = 'Vendedor Asignado *';
+            }
+        }
+
+        splitBtnFull.addEventListener('click', () => updateSplitUI(false));
+        splitBtnHalf.addEventListener('click', () => updateSplitUI(true));
+
+        function updateModalStatusUI(status) {
+            opStatusInput.value = status;
+            if (status === 'SEÑA') {
+                stateBtnSena.className = 'py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-amber-500/25 text-amber-200 border border-amber-400/50 shadow-sm';
+                stateBtnVenta.className = 'py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 text-zinc-400 hover:text-white';
+            } else {
+                stateBtnVenta.className = 'py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-500/25 text-emerald-200 border border-emerald-400/50 shadow-sm';
+                stateBtnSena.className = 'py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 text-zinc-400 hover:text-white';
+            }
+        }
+
+        stateBtnSena.addEventListener('click', () => updateModalStatusUI('SEÑA'));
+        stateBtnVenta.addEventListener('click', () => updateModalStatusUI('VENTA'));
+
+        function populateTeamSelects(selectedV1, selectedV2, selectedTmk) {
+            const sellersList = vendors.filter(v => v.role !== 'TMK');
+            const poolForSellers = sellersList.length > 0 ? sellersList : vendors;
+            const tmkList = vendors.filter(v => v.role === 'TMK');
+
+            const select1 = document.getElementById('opVendor');
+            select1.innerHTML = poolForSellers.map(v => `
+                <option value="${v.id}" ${v.id === selectedV1 ? 'selected' : ''}>${v.name}</option>
+            `).join('');
+
+            const select2 = document.getElementById('opVendor2');
+            select2.innerHTML = poolForSellers.map(v => `
+                <option value="${v.id}" ${v.id === selectedV2 ? 'selected' : ''}>${v.name}</option>
+            `).join('');
+
+            const selectTmk = document.getElementById('opTmk');
+            selectTmk.innerHTML = `
+                <option value="">Sin TMK (Dato propio)</option>
+                ${tmkList.map(t => `<option value="${t.id}" ${t.id === selectedTmk ? 'selected' : ''}>${t.name} (TMK)</option>`).join('')}
+            `;
+        }
+
+        function openOpModal(defaults = {}) {
+            opForm.reset();
+            document.getElementById('opId').value = defaults.id || '';
+            document.getElementById('opModalTitle').textContent = defaults.id ? 'Editar Operación' : 'Nueva Operación';
+
+            const sellersOnly = vendors.filter(v => v.role !== 'TMK');
+            const defaultV1 = defaults.vendorId || (sellersOnly[0]?.id || vendors[0]?.id || '');
+            const defaultV2 = defaults.secondVendorId || (sellersOnly[1]?.id || defaultV1);
+            const defaultTmk = defaults.tmkId || '';
+
+            populateTeamSelects(defaultV1, defaultV2, defaultTmk);
+            updateSplitUI(Boolean(defaults.isHalf));
+
+            document.getElementById('opCategory').value = defaults.category || 'Volkswagen';
+            document.getElementById('opClient').value = defaults.client || '';
+            document.getElementById('opDate').value = defaults.date || new Date().toISOString().split('T')[0];
+            document.getElementById('opModel').value = defaults.model || '';
+            document.getElementById('opValue').value = defaults.value ?? '';
+            document.getElementById('opPercentage').value = defaults.percentage ?? '100%';
+            document.getElementById('opPayment').value = defaults.payment !== undefined ? defaults.payment : (defaults.commission ?? '');
+            document.getElementById('opNote').value = defaults.note || '';
+
+            updateModalStatusUI(defaults.status || 'SEÑA');
+
+            opModal.classList.remove('hidden');
+            opModal.classList.add('flex');
+        }
+
+        function closeOpModal() {
+            opModal.classList.add('hidden');
+            opModal.classList.remove('flex');
+        }
+
+        window.openNewOpModalForCategory = function(categoryId) {
+            openOpModal({ category: categoryId });
+        };
+
+        window.editOperation = function(opId) {
+            const op = operations.find(o => o.id === opId);
+            if (!op) return;
+            openOpModal(op);
+        };
+
+        document.getElementById('openNewOpModalBtn').addEventListener('click', () => openOpModal());
+        document.getElementById('closeOpModalBtn').addEventListener('click', closeOpModal);
+        document.getElementById('cancelOpModalBtn').addEventListener('click', closeOpModal);
+
+        opForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('pwaInstallBtn').classList.remove('hidden');
+            const id = document.getElementById('opId').value;
+            const isHalf = document.getElementById('opIsHalf').value === 'true';
+            const vendorId = document.getElementById('opVendor').value;
+            const secondVendorId = isHalf ? document.getElementById('opVendor2').value : '';
+            const tmkId = document.getElementById('opTmk').value;
+
+            const payload = {
+                id: id || 'op_' + Date.now(),
+                vendorId,
+                isHalf,
+                secondVendorId,
+                tmkId,
+                category: document.getElementById('opCategory').value,
+                client: document.getElementById('opClient').value.trim(),
+                date: document.getElementById('opDate').value,
+                model: document.getElementById('opModel').value.trim(),
+                value: parseFloat(document.getElementById('opValue').value) || 0,
+                percentage: document.getElementById('opPercentage').value.trim(),
+                payment: parseFloat(document.getElementById('opPayment').value) || 0,
+                status: document.getElementById('opStatus').value,
+                note: document.getElementById('opNote').value.trim()
+            };
+
+            if (id) {
+                const idx = operations.findIndex(o => o.id === id);
+                if (idx !== -1) operations[idx] = payload;
+                showToast('Operación actualizada');
+            } else {
+                operations.unshift(payload);
+                showToast('Nueva operación registrada');
+            }
+
+            saveState();
+            closeOpModal();
+            renderAll();
         });
 
-        document.getElementById('pwaInstallBtn').addEventListener('click', () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('pwaInstallBtn').classList.add('hidden');
-                    }
-                    deferredPrompt = null;
-                });
+        // ==========================================
+        // GESTIÓN DE EQUIPO (VENDEDORES Y TMK)
+        // ==========================================
+        const vendorsModal = document.getElementById('vendorsModal');
+
+        function renderVendorsModalList() {
+            const list = document.getElementById('vendorsListModal');
+            if (vendors.length === 0) {
+                list.innerHTML = `<p class="text-xs text-zinc-400 text-center py-4">No hay integrantes cargados.</p>`;
+                return;
             }
+
+            list.innerHTML = vendors.map(v => `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-black/35 border border-white/10">
+                    <div class="flex items-center gap-2 flex-grow">
+                        <input 
+                            type="color" 
+                            value="${v.color || '#3b82f6'}" 
+                            onchange="updateVendorColor('${v.id}', this.value)"
+                            title="Cambiar color"
+                            class="w-8 h-8 rounded-xl bg-transparent border border-white/15 cursor-pointer shrink-0 p-0.5"
+                        >
+                        <input 
+                            type="text" 
+                            value="${v.name}" 
+                            onchange="updateVendorName('${v.id}', this.value)"
+                            class="bg-transparent text-sm font-medium text-white focus:outline-none focus:bg-white/5 px-2 py-1 rounded-lg w-full"
+                        >
+                        <select 
+                            onchange="updateVendorRole('${v.id}', this.value)"
+                            class="liquid-input px-2.5 py-1 rounded-xl text-xs font-semibold shrink-0"
+                        >
+                            <option value="VENDEDOR" ${v.role !== 'TMK' ? 'selected' : ''}>Vendedor</option>
+                            <option value="TMK" ${v.role === 'TMK' ? 'selected' : ''}>TMK</option>
+                        </select>
+                    </div>
+                    <button 
+                        onclick="removeVendor('${v.id}')" 
+                        title="Eliminar integrante"
+                        class="p-1.5 rounded-xl text-red-300 hover:bg-red-500/20 transition-colors shrink-0"
+                    >
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function openVendorsModal() {
+            renderVendorsModalList();
+            vendorsModal.classList.remove('hidden');
+            vendorsModal.classList.add('flex');
+        }
+
+        function closeVendorsModal() {
+            vendorsModal.classList.add('hidden');
+            vendorsModal.classList.remove('flex');
+        }
+
+        document.getElementById('openVendorsModalBtn').addEventListener('click', openVendorsModal);
+        document.getElementById('QuickAddVendorBtn').addEventListener('click', openVendorsModal);
+        document.getElementById('closeVendorsModalBtn').addEventListener('click', closeVendorsModal);
+        document.getElementById('doneVendorsModalBtn').addEventListener('click', closeVendorsModal);
+
+        document.getElementById('vendorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('newVendorName');
+            const colorInput = document.getElementById('newVendorColor');
+            const roleInput = document.getElementById('newVendorRole');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            vendors.push({
+                id: 'v_' + Date.now(),
+                name,
+                color: colorInput.value || '#3b82f6',
+                role: roleInput.value || 'VENDEDOR'
+            });
+
+            nameInput.value = '';
+            saveState();
+            renderVendorsModalList();
+            renderAll();
+            showToast(`${name} añadido al equipo`);
+        });
+
+        window.updateVendorName = function(vendorId, newName) {
+            const v = vendors.find(item => item.id === vendorId);
+            if (!v || !newName.trim()) return;
+            v.name = newName.trim();
+            saveState();
+            renderAll();
+            showToast('Nombre actualizado');
+        };
+
+        window.updateVendorColor = function(vendorId, newColor) {
+            const v = vendors.find(item => item.id === vendorId);
+            if (!v) return;
+            v.color = newColor;
+            saveState();
+            renderAll();
+            showToast('Color actualizado');
+        };
+
+        window.updateVendorRole = function(vendorId, newRole) {
+            const v = vendors.find(item => item.id === vendorId);
+            if (!v) return;
+            v.role = newRole;
+            saveState();
+            renderAll();
+            showToast(`Rol cambiado a ${newRole}`);
+        };
+
+        window.removeVendor = function(vendorId) {
+            vendors = vendors.filter(v => v.id !== vendorId);
+            if (activeVendorFilter === vendorId) activeVendorFilter = 'ALL';
+            saveState();
+            renderVendorsModalList();
+            renderAll();
+            showToast('Integrante eliminado');
+        };
+
+        // ==========================================
+        // BUSCADOR Y FILTROS DE ESTADO
+        // ==========================================
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            clearSearchBtn.classList.toggle('hidden', searchQuery.trim() === '');
+            renderAll();
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            renderAll();
+        });
+
+        document.querySelectorAll('.status-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeStatusFilter = btn.getAttribute('data-status-filter');
+                document.querySelectorAll('.status-filter-btn').forEach(b => {
+                    b.className = 'status-filter-btn px-3 py-1.5 rounded-xl text-zinc-400 hover:text-white transition-all';
+                });
+                btn.className = 'status-filter-btn px-3 py-1.5 rounded-xl bg-red-900/60 text-white border border-red-500/30 shadow-sm transition-all';
+                renderAll();
+            });
+        });
+
+        // Inicialización al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            renderAll();
         });
     </script>
 </body>
